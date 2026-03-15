@@ -1,9 +1,19 @@
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { arch } from "node:process";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { execFile as execFileCb } from "node:child_process";
 import { promisify } from "node:util";
+
+// Resolve __dirname for both ESM and CJS builds
+const _getDirname = (): string => {
+  // CJS: __dirname is available globally
+  if (typeof __dirname !== "undefined") return __dirname;
+  // ESM: derive from import.meta.url
+  // @ts-ignore - import.meta.url is only available in ESM
+  return dirname(new URL(import.meta.url).pathname);
+};
+const _currentDir = _getDirname();
 
 import { inflate } from "./inflate.js";
 
@@ -68,7 +78,7 @@ class Lightpanda {
       binDir = input;
     } else {
       // Resolve package root: two levels up from build/esm/ or build/cjs/
-      const pkgRoot = this.packageDir ?? join(__dirname, "..", "..");
+      const pkgRoot = this.packageDir ?? join(_currentDir, "..", "..");
       binDir = getBinDir(pkgRoot);
     }
     const compressedPath = join(binDir, "lightpanda.br");
@@ -103,7 +113,7 @@ class Lightpanda {
     }
 
     if (options.timeout !== undefined) {
-      args.push("--timeout", String(Math.ceil(options.timeout / 1000)));
+      args.push("--http_timeout", String(options.timeout));
     }
 
     if (options.obeyRobots) {

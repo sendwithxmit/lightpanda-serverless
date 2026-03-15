@@ -10,7 +10,7 @@
  *   node scripts/prepare-binary.mjs --arch arm64  # downloads only arm64
  */
 
-import { createWriteStream, createReadStream, mkdirSync, unlinkSync } from "node:fs";
+import { createWriteStream, createReadStream, mkdirSync, unlinkSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pipeline } from "node:stream/promises";
@@ -93,6 +93,12 @@ async function prepareBinary(archKey) {
 
   console.log(`\n[${archKey}] Preparing Lightpanda binary...`);
 
+  if (existsSync(compressedPath)) {
+    const stats = statSync(compressedPath);
+    console.log(`  Already exists: ${compressedPath} (${(stats.size / 1024 / 1024).toFixed(1)}MB) — skipping`);
+    return;
+  }
+
   mkdirSync(config.dir, { recursive: true });
 
   console.log(`  Source: ${config.url}`);
@@ -103,7 +109,6 @@ async function prepareBinary(archKey) {
   // Remove the raw binary, keep only the compressed one
   unlinkSync(rawPath);
 
-  const { statSync } = await import("node:fs");
   const stats = statSync(compressedPath);
   console.log(`  Output: ${compressedPath} (${(stats.size / 1024 / 1024).toFixed(1)}MB)`);
 }
