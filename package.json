@@ -64,9 +64,9 @@
     "build:esm": "tsc -p tsconfig.build.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "prepare-binary": "node scripts/prepare-binary.mjs",
-    "prepublishOnly": "npm run build",
     "test": "tsc -p tsconfig.test.json && node build/test/tests/run.js",
-    "build:cjs-pkg": "echo {\"type\":\"commonjs\"} > build/cjs/package.json"
+    "build:cjs-pkg": "echo {\"type\":\"commonjs\"} > build/cjs/package.json",
+    "prepack": "npm run prepare-binary && npm run build"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
